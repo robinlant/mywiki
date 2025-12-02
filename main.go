@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/robinlant/mywiki/internal/wiki/internal/store"
 	"github.com/robinlant/mywiki/internal/wiki/internal/web"
@@ -15,6 +15,6 @@ var db = "test"
 func main() {
 	st, disc := store.NewMongoStore(mongoCon, db)
 	defer disc()
-	fmt.Println("Starting a web server at", addr)
+	log.Printf("[INFO] Starting a web server at %s", addr)
 	web.Run(st, addr)
 }

@@ -1,0 +1,9 @@
+{{define "view"}}
+{{template "base" .}}
+{{end}}
+
+{{define "content"}}
+<h2>{{.Title}}</h2>
+<pre>{{printf "%s" .Body}}</pre>
+<p><a href="/edit/{{.Title}}">Edit</a></p>
+{{end}}

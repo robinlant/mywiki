@@ -3,12 +3,13 @@ package web
 import (
 	"context"
 	"net/http"
+	"path"
 	"regexp"
 
 	"github.com/robinlant/mywiki/internal/wiki/internal/store"
 )
 
-var validPath = regexp.MustCompile("^/(edit|view|save)/([a-zA-z+0-9]+)$")
+var validPath = regexp.MustCompile("^/(edit|view|save|styles)/([a-zA-z+0-9._-]+)$")
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, context.Context, store.Store, string), s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +55,11 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	renderTemplate(w, "edit", p)
 }
 
-func rootHandler(w http.ResponseWriter, tmpl string, p store.Page) {
+func styleHandler(w http.ResponseWriter, r *http.Request, _ context.Context, _ store.Store, style string) {
+	w.Header().Set("Content-Type", "text/css")
+	http.ServeFile(w, r, path.Join(stylesDir, style))
+}
 
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "root", &store.Page{})
 }
