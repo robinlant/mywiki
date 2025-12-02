@@ -11,7 +11,20 @@ type Page struct {
 	UpdatedAt time.Time
 }
 
-type Query struct {
+type SearchQuery struct {
+	Search string
+	Page   uint
+	Limit  uint
+}
+
+func (q SearchQuery) Skip() uint {
+	if q.Page == 0 {
+		return 0
+	}
+	return (q.Page - 1) * q.Limit
+}
+
+type OrderQuery struct {
 	Limit uint
 	Field string
 	Desc  bool
@@ -20,5 +33,6 @@ type Query struct {
 type Store interface {
 	SavePage(ctx context.Context, p *Page) error
 	LoadPage(ctx context.Context, title string) (*Page, bool, error)
-	LoadPages(ctx context.Context, q Query) ([]*Page, error)
+	LoadPages(ctx context.Context, q OrderQuery) ([]*Page, error)
+	SearchPages(ctx context.Context, q SearchQuery) ([]*Page, error)
 }

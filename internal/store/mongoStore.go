@@ -21,6 +21,10 @@ type MongoStore struct {
 	DBName string
 }
 
+func (m *MongoStore) pagesCol() *mongo.Collection {
+	return m.Client.Database(m.DBName).Collection(colNames.Pages)
+}
+
 type DisconnectMongo func()
 
 func NewMongoStore(uri string, db string) (*MongoStore, DisconnectMongo) {
@@ -39,11 +43,11 @@ func NewMongoStore(uri string, db string) (*MongoStore, DisconnectMongo) {
 }
 
 func (m *MongoStore) SavePage(ctx context.Context, p *Page) error {
-	log.Printf("[INFO] Saving page %v", p.Title)
+	log.Printf("[INFO] Saving page '%v'", p.Title)
 	p.UpdatedAt = time.Now()
-	coll := m.Client.Database(m.DBName).Collection(colNames.Pages)
+	col := m.pagesCol()
 
-	_, err := coll.UpdateOne(
+	_, err := col.UpdateOne(
 		ctx,
 		bson.M{"title": p.Title},
 		bson.M{"$set": p},
@@ -53,9 +57,34 @@ func (m *MongoStore) SavePage(ctx context.Context, p *Page) error {
 	return err
 }
 
+func (m *MongoStore) SearchPages(ctx context.Context, q SearchQuery) ([]*Page, error) {
+	if q.Limit == 0 || q.Page == 0 {
+		return nil, fmt.Errorf("SearchQuery.Limit and SearchQuery.Page cannot be less than 1")
+	}
+
+	log.Printf("[INFO] Searching for pages: '%v', Limit - %d, Page %d", q.Search, q.Limit, q.Page)
+	col := m.pagesCol()
+	opts := options.Find().
+		SetLimit(int64(q.Limit)).
+		SetSkip(int64(q.Skip()))
+
+	filter := bson.D{}
+	if q.Search != "" {
+		filter = bson.D{{Key: "title", Value: bson.D{{Key: "$regex", Value: q.Search}}}}
+	}
+
+	cur, err := col.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, executeQueryError(err)
+	}
+	defer cur.Close(ctx)
+
+	return decodeObjects[Page](cur, ctx)
+}
+
 func (m *MongoStore) LoadPage(ctx context.Context, title string) (*Page, bool, error) {
-	log.Printf("[INFO] Loading page %v", title)
-	col := m.Client.Database(m.DBName).Collection(colNames.Pages)
+	log.Printf("[INFO] Loading page '%v'", title)
+	col := m.pagesCol()
 
 	var p Page
 
@@ -64,15 +93,15 @@ func (m *MongoStore) LoadPage(ctx context.Context, title string) (*Page, bool, e
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("failed to decode document: %w", err)
+		return nil, false, executeQueryError(err)
 	}
 
 	return &p, true, nil
 }
 
-func (m *MongoStore) LoadPages(ctx context.Context, q Query) ([]*Page, error) {
-	log.Printf("[INFO] Loading pages: Limit - %d; Qeury by field %v, Desc %t", q.Limit, q.Field, q.Desc)
-	col := m.Client.Database(m.DBName).Collection("pages")
+func (m *MongoStore) LoadPages(ctx context.Context, q OrderQuery) ([]*Page, error) {
+	log.Printf("[INFO] Loading pages: Limit - %d; Qeury by field '%v', Desc %t", q.Limit, q.Field, q.Desc)
+	col := m.pagesCol()
 
 	opts := options.Find().
 		SetLimit(int64(q.Limit))
@@ -98,17 +127,27 @@ func (m *MongoStore) LoadPages(ctx context.Context, q Query) ([]*Page, error) {
 
 	opts.SetSort(sortBSON)
 
-	cursor, err := col.Find(ctx, filter, opts)
+	cur, err := col.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute find query: %w", err)
+		return nil, executeQueryError(err)
 	}
-	defer cursor.Close(ctx)
+	defer cur.Close(ctx)
 
-	var pages []*Page
+	return decodeObjects[Page](cur, ctx)
+}
 
-	if err := cursor.All(ctx, &pages); err != nil {
+func decodeObjects[T any](cur *mongo.Cursor, ctx context.Context) ([]*T, error) {
+	r := make([]*T, 0)
+
+	if err := cur.All(ctx, &r); err != nil {
 		return nil, fmt.Errorf("failed to decode documents: %w", err)
 	}
 
-	return pages, nil
+	return r, nil
+}
+
+func executeQueryError(err error) error {
+	err = fmt.Errorf("failed to execute find query:: %w", err)
+	log.Printf("[ERROR] %s", err.Error())
+	return err
 }

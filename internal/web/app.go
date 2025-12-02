@@ -9,11 +9,12 @@ import (
 
 func Run(store store.Store, addr string) {
 	http.HandleFunc("/favicon.ico", faviconHandler)
-	http.HandleFunc("/view/", makeHandler(viewHandler, store))
-	http.HandleFunc("/edit/", makeHandler(editHandler, store))
-	http.HandleFunc("/save/", makeHandler(saveHandler, store))
-	http.HandleFunc("/styles/", makeHandler(styleHandler, store))
-	http.HandleFunc("/", makeRootHandler(store))
+	http.HandleFunc("/view/", makePageHandler(viewHandler, store))
+	http.HandleFunc("/edit/", makePageHandler(editHandler, store))
+	http.HandleFunc("/save/", makePageHandler(saveHandler, store))
+	http.HandleFunc("/styles/", makePageHandler(styleHandler, store))
+	http.HandleFunc("/search/", makeGenericHandler(searchHandler, store))
+	http.HandleFunc("/", makeGenericHandler(rootHandler, store))
 
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
