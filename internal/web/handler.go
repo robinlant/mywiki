@@ -11,6 +11,11 @@ import (
 
 var validPath = regexp.MustCompile("^/(edit|view|save|styles)/([a-zA-z+0-9._-]+)$")
 
+type RootPageData struct {
+	Title string
+	Posts []*store.Page
+}
+
 func makeHandler(fn func(http.ResponseWriter, *http.Request, context.Context, store.Store, string), s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -55,11 +60,38 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	renderTemplate(w, "edit", p)
 }
 
+// TODO add erorr handling
 func styleHandler(w http.ResponseWriter, r *http.Request, _ context.Context, _ store.Store, style string) {
 	w.Header().Set("Content-Type", "text/css")
 	http.ServeFile(w, r, path.Join(stylesDir, style))
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	renderTemplate(w, "root", &store.Page{})
+func makeRootHandler(s store.Store) http.HandlerFunc {
+	const limit = 10
+	var q = store.Query{
+		Limit: limit,
+		Field: "updatedat",
+		Desc:  true,
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		ps, err := s.LoadPages(ctx, q)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		data := RootPageData{
+			Title: "Home",
+			Posts: ps,
+		}
+
+		renderTemplate(w, "root", data)
+	}
+}
+
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "image/x-icon")
+	http.ServeFile(w, r, path.Join(staticDir, "favicon.ico"))
 }

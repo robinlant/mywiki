@@ -3,6 +3,9 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -36,6 +39,8 @@ func NewMongoStore(uri string, db string) (*MongoStore, DisconnectMongo) {
 }
 
 func (m *MongoStore) SavePage(ctx context.Context, p *Page) error {
+	log.Printf("[INFO] Saving page %v", p.Title)
+	p.UpdatedAt = time.Now()
 	coll := m.Client.Database(m.DBName).Collection(colNames.Pages)
 
 	_, err := coll.UpdateOne(
@@ -49,6 +54,7 @@ func (m *MongoStore) SavePage(ctx context.Context, p *Page) error {
 }
 
 func (m *MongoStore) LoadPage(ctx context.Context, title string) (*Page, bool, error) {
+	log.Printf("[INFO] Loading page %v", title)
 	col := m.Client.Database(m.DBName).Collection(colNames.Pages)
 
 	var p Page
@@ -58,8 +64,51 @@ func (m *MongoStore) LoadPage(ctx context.Context, title string) (*Page, bool, e
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, false, nil
 		}
-		return nil, false, err
+		return nil, false, fmt.Errorf("failed to decode document: %w", err)
 	}
 
 	return &p, true, nil
+}
+
+func (m *MongoStore) LoadPages(ctx context.Context, q Query) ([]*Page, error) {
+	log.Printf("[INFO] Loading pages: Limit - %d; Qeury by field %v, Desc %t", q.Limit, q.Field, q.Desc)
+	col := m.Client.Database(m.DBName).Collection("pages")
+
+	opts := options.Find().
+		SetLimit(int64(q.Limit))
+
+	filter := bson.M{}
+
+	var sortBSON bson.D
+	sortByField := q.Field
+
+	if sortByField != "" {
+		filter = bson.M{sortByField: bson.M{"$ne": nil}}
+
+		var sortDirection int
+		if !q.Desc {
+			sortDirection = 1
+		} else {
+			sortDirection = -1
+		}
+		sortBSON = bson.D{{Key: sortByField, Value: sortDirection}}
+	} else {
+		sortBSON = bson.D{{Key: "title", Value: 1}}
+	}
+
+	opts.SetSort(sortBSON)
+
+	cursor, err := col.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute find query: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var pages []*Page
+
+	if err := cursor.All(ctx, &pages); err != nil {
+		return nil, fmt.Errorf("failed to decode documents: %w", err)
+	}
+
+	return pages, nil
 }
