@@ -33,6 +33,8 @@ func mustGetenv(key string) string {
 }
 
 func main() {
+	web.SetDevMode(true)
+
 	if err := godotenv.Load(); err != nil {
 		log.Println("[WARN] No .env file found, using system env")
 	}

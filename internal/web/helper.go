@@ -3,10 +3,42 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"regexp"
+
+	"github.com/robinlant/mywiki/internal/store"
 )
 
 var reference = regexp.MustCompile(`\[{2}(.*?)\]{2}`)
+
+var SetDevMode, DevMode = func() (func(bool), func() bool) {
+	var devMode bool
+
+	return func(mode bool) {
+			devMode = mode
+			log.Printf("[INFO] development mode: %t", devMode)
+		}, func() bool {
+			return devMode
+		}
+
+}()
+
+// TODO rework this decoding mess it has to many reallocations
+func decodeT(p *store.Page) string {
+	return string(decodeTitle([]byte(p.Title)))
+}
+
+func encodeT(title string) string {
+	return string(encodeTitle(([]byte(title))))
+}
+
+func getDisplay(p *store.Page) Display {
+	return Display{
+		Display:  decodeT(p),
+		ViewHref: "/view/" + p.Title,
+		Page:     p,
+	}
+}
 
 func replaceChars(b []byte, old byte, new byte) []byte {
 	r := make([]byte, len(b))

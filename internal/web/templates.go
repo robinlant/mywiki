@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"html"
 	"html/template"
 	"log"
 	"net/http"
@@ -32,7 +33,12 @@ func loadTemplate(tmpl string) (*template.Template, error) {
 
 	files := append(commonTemplates, tmplDir+"/"+tmpl+".html")
 
-	t, err := template.ParseFiles(files...)
+	funcMap := template.FuncMap{
+		"wiki": wikiLinkFilter,
+	}
+	t := template.New(tmpl + ".html").Funcs(funcMap)
+	t, err := t.ParseFiles(files...)
+
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +66,17 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p interface{}) {
 		return
 	}
 
+	if DevMode() {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+	}
 	w.WriteHeader(http.StatusOK)
 	b.WriteTo(w)
+}
+
+func wikiLinkFilter(input []byte) template.HTML {
+	safeText := html.EscapeString(string(input))
+	linkedTExt := string(addTitleReferences([]byte(safeText)))
+	return template.HTML(linkedTExt)
 }

@@ -4,6 +4,9 @@
 
 {{define "content"}}
 <h2>{{.Title}}</h2>
-<div>{{printf "%s" .Page.Body}}</div>
+<div style="color: var(--color-text-medium); font-size: 0.9em; margin-bottom: 20px;">
+    Last updated: {{.Page.UpdatedAt.Format "Jan 02, 2006 at 15:04"}}
+</div>
+<div>{{.Page.Body | wiki}}</div>
 <p><a href="{{.EditHref}}">Edit</a></p>
 {{end}}

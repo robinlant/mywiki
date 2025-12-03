@@ -7,11 +7,16 @@
 <ul class="post-list">
     {{range .Displays}}
     <li class="post-item">
-        <div class="post-item-title">
-            <a href="{{.ViewHref}}">{{.Display}}</a>
+        <div class="post-item-header">
+            <div class="post-item-title">
+                <a href="{{.ViewHref}}">{{.Display}}</a>
+            </div>
+            <div class="post-item-meta">
+                {{.Page.UpdatedAt.Format "Jan 02, 2006 15:04"}}
+            </div>
         </div>
-        <div class="post-item-meta">
-            Post details available soon.
+        <div class="post-preview">
+            {{.Page.Body | wiki}}
         </div>
     </li>
     {{end}}

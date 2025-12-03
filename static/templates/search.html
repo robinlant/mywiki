@@ -1,0 +1,54 @@
+{{define "search"}}
+{{template "base" .}}
+{{end}}
+
+{{define "content"}}
+<h2>Search Results</h2>
+
+<form action="/search/" method="GET" class="search-controls">
+    <!-- Query input grows to fill space -->
+    <div class="form-group grow">
+        <label for="search">Query</label>
+        <input type="text" id="search" name="search" value="{{.Search}}" placeholder="Type to search...">
+    </div>
+
+    <div class="form-group">
+        <label for="limit">Limit</label>
+        <input type="number" id="limit" name="limit" value="{{.Limit}}" min="1" max="100" style="width: 80px;">
+    </div>
+
+    <div class="form-group">
+        <label for="page">Page</label>
+        <input type="number" id="page" name="page" value="{{.Page}}" min="1" style="width: 80px;">
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Update">
+    </div>
+</form>
+
+{{if .Displays}}
+    <ul class="post-list">
+        {{range .Displays}}
+        <li class="post-item">
+            <div class="post-item-header">
+                <div class="post-item-title">
+                    <a href="{{.ViewHref}}">{{.Display}}</a>
+                </div>
+                <div class="post-item-meta">
+                    {{.Page.UpdatedAt.Format "Jan 02, 2006 15:04"}}
+                </div>
+            </div>
+            <div class="post-preview">
+                {{.Page.Body | wiki}}
+            </div>
+        </li>
+        {{end}}
+    </ul>
+{{else}}
+    {{if .Search}}
+        <p>No results found for "<b>{{.Search}}</b>".</p>
+    {{end}}
+{{end}}
+
+{{end}}

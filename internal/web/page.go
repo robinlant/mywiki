@@ -8,6 +8,14 @@ type Display struct {
 	Page     *store.Page
 }
 
+type SearchPageData struct {
+	Title    string
+	Displays []Display
+	Page     uint
+	Limit    uint
+	Search   string
+}
+
 type RootPageData struct {
 	Title    string
 	Displays []Display

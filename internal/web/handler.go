@@ -1,10 +1,7 @@
 package web
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"path"
 	"regexp"
@@ -16,14 +13,6 @@ import (
 var validPath = regexp.MustCompile(`^/(edit|view|save|styles|search)/([a-zA-z+0-9._-]+)$`)
 
 type handleeFunc func(http.ResponseWriter, *http.Request, context.Context, store.Store, string)
-
-func decodeT(p *store.Page) string {
-	return string(decodeTitle([]byte(p.Title)))
-}
-
-func encodeT(title string) string {
-	return string(encodeTitle(([]byte(title))))
-}
 
 func makePageHandler(fn handleeFunc, s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +35,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	if !ok {
 		p = &store.Page{Title: encodeT(title)}
 	}
-	p.Body = addTitleReferences(p.Body)
 	data := ViewPageData{
 		Title:    decodeT(p),
 		Page:     p,
@@ -118,11 +106,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 
 	d := make([]Display, len(ps))
 	for i, p := range ps {
-		d[i] = Display{
-			Display:  decodeT(p),
-			ViewHref: "/view/" + p.Title,
-			Page:     p,
-		}
+		d[i] = getDisplay(p)
 	}
 
 	data := RootPageData{
@@ -161,18 +145,26 @@ func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, 
 		Page:   queryParamOrDefault(r, "page", 1, strToUint),
 	}
 
-	p, err := s.SearchPages(ctx, q)
+	ps, err := s.SearchPages(ctx, q)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	d := make([]Display, len(ps))
 
-	var b bytes.Buffer
-	fmt.Fprintf(&b, "Search -> '%s'\nLimit -> %d\nPage -> %d\n\n", q.Search, q.Limit, q.Page)
+	for i, p := range ps {
+		d[i] = getDisplay(p)
+	}
 
-	data, _ := json.MarshalIndent(p, "", "  ")
-	b.Write(data)
-	b.WriteTo(w)
+	data := SearchPageData{
+		Title:    "Search",
+		Displays: d,
+		Page:     q.Page,
+		Limit:    q.Limit,
+		Search:   q.Search,
+	}
+
+	renderTemplate(w, "search", data)
 }
 
 // TODO finish or delete
