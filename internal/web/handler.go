@@ -10,7 +10,7 @@ import (
 	"github.com/robinlant/mywiki/internal/store"
 )
 
-var validPath = regexp.MustCompile(`^/(edit|view|save|styles|search)/([a-zA-z+0-9._-]+)$`)
+var validPath = regexp.MustCompile(`^/(edit|view|save|styles|search)/([a-zA-z+0-9.-_ ]+)$`)
 
 type handleeFunc func(http.ResponseWriter, *http.Request, context.Context, store.Store, string)
 
@@ -22,7 +22,7 @@ func makePageHandler(fn handleeFunc, s store.Store) http.HandlerFunc {
 			http.NotFound(w, r)
 			return
 		}
-		fn(w, r, ctx, s, m[2])
+		fn(w, r, ctx, s, encodeTitle(m[2]))
 	}
 }
 
@@ -33,10 +33,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 		return
 	}
 	if !ok {
-		p = &store.Page{Title: encodeT(title)}
+		p = &store.Page{Title: title}
 	}
 	data := ViewPageData{
-		Title:    decodeT(p),
+		Title:    decodeTitle(p.Title),
 		Page:     p,
 		Exist:    ok,
 		EditHref: "/edit/" + p.Title,
@@ -47,7 +47,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 
 func saveHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, title string) {
 	body := r.FormValue("body")
-	p := &store.Page{Title: encodeT(title), Body: []byte(body)}
+	p := &store.Page{Title: title, Body: []byte(body)}
 	err := s.SavePage(ctx, p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -63,7 +63,7 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 		return
 	}
 	if !ok {
-		p = &store.Page{Title: encodeT(title)}
+		p = &store.Page{Title: title}
 	}
 	data := EditPageData{
 		Title:    "Editing " + p.Title,
@@ -110,8 +110,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	}
 
 	data := RootPageData{
-		Title:    "Home",
-		Displays: d,
+		Title:     "Home",
+		Displays:  d,
+		GotoHref:  "/goto/",
+		GotoParam: "page",
 	}
 
 	renderTemplate(w, "root", data)
@@ -165,6 +167,17 @@ func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, 
 	}
 
 	renderTemplate(w, "search", data)
+}
+
+func gotoHandler(w http.ResponseWriter, r *http.Request) {
+	page := r.FormValue("page")
+
+	if page == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	http.Redirect(w, r, "/view/"+page, http.StatusFound)
 }
 
 // TODO finish or delete

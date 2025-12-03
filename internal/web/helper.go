@@ -1,10 +1,10 @@
 package web
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/robinlant/mywiki/internal/store"
 )
@@ -23,25 +23,16 @@ var SetDevMode, DevMode = func() (func(bool), func() bool) {
 
 }()
 
-// TODO rework this decoding mess it has to many reallocations
-func decodeT(p *store.Page) string {
-	return string(decodeTitle([]byte(p.Title)))
-}
-
-func encodeT(title string) string {
-	return string(encodeTitle(([]byte(title))))
-}
-
 func getDisplay(p *store.Page) Display {
 	return Display{
-		Display:  decodeT(p),
+		Display:  decodeTitle(p.Title),
 		ViewHref: "/view/" + p.Title,
 		Page:     p,
 	}
 }
 
-func replaceChars(b []byte, old byte, new byte) []byte {
-	r := make([]byte, len(b))
+func replaceChars(b string, old rune, new rune) string {
+	r := make([]rune, len(b))
 	for i, v := range b {
 		if v == old {
 			r[i] = new
@@ -50,16 +41,16 @@ func replaceChars(b []byte, old byte, new byte) []byte {
 		}
 
 	}
-	return r
+	return string(r)
 }
 
-func encodeTitle(s []byte) []byte {
-	s = bytes.TrimSpace(s)
+func encodeTitle(s string) string {
+	s = strings.TrimSpace(s)
 
 	return replaceChars(s, ' ', '+')
 }
 
-func decodeTitle(s []byte) []byte {
+func decodeTitle(s string) string {
 	return replaceChars(s, '+', ' ')
 }
 
@@ -68,7 +59,7 @@ func addTitleReferences(s []byte) []byte {
 
 	s = reference.ReplaceAllFunc(s, func(m []byte) []byte {
 		t := m[2 : len(m)-2]
-		et := encodeTitle(t)
+		et := encodeTitle(string(t))
 		var b []byte
 		b = fmt.Appendf(b, `<a href="/view/%s" class="%s">%s</a>`, et, refClass, t)
 		return b

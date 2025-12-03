@@ -1,4 +1,3 @@
-
 package web
 
 import (
@@ -17,17 +16,17 @@ func assertEqual[K comparable](t *testing.T, want K, got K) {
 func TestEncodeTitle(t *testing.T) {
 	want := "I+want+pizzqa+!"
 
-	got := encodeTitle([]byte("  I want pizzqa !   "))
+	got := encodeTitle("  I want pizzqa !   ")
 
-	assertEqual(t, want, string(got))
+	assertEqual(t, want, got)
 }
 
 func TestDecodeTitle(t *testing.T) {
 	want := "I want pizzqa !"
 
-	got := decodeTitle([]byte("I+want+pizzqa+!"))
+	got := decodeTitle("I+want+pizzqa+!")
 
-	assertEqual(t, want, string(got))
+	assertEqual(t, want, got)
 }
 
 func TestAddTitleReferences(t *testing.T) {

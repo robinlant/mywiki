@@ -17,8 +17,10 @@ type SearchPageData struct {
 }
 
 type RootPageData struct {
-	Title    string
-	Displays []Display
+	Title     string
+	Displays  []Display
+	GotoHref  string
+	GotoParam string
 }
 
 type ViewPageData struct {

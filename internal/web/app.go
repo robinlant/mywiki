@@ -9,6 +9,7 @@ import (
 
 func Run(store store.Store, addr string) {
 	http.HandleFunc("/favicon.ico", faviconHandler)
+	http.HandleFunc("/goto/", gotoHandler)
 	http.HandleFunc("/view/", makePageHandler(viewHandler, store))
 	http.HandleFunc("/edit/", makePageHandler(editHandler, store))
 	http.HandleFunc("/save/", makePageHandler(saveHandler, store))
