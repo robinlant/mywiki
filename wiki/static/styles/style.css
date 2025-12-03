@@ -17,8 +17,6 @@ body {
     line-height: 1.6;
 }
 
-/* --- Layout --- */
-
 header, footer, main {
     max-width: 900px;
     margin-left: auto;
@@ -30,7 +28,6 @@ header {
     border-bottom: 1px solid var(--color-border);
     padding-top: 25px;
     padding-bottom: 25px;
-    /* Force Title left and Search right */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -43,7 +40,6 @@ h1 {
     line-height: 1;
 }
 
-/* --- Header Search (Right Side) --- */
 .header-search form {
     display: flex;
     flex-direction: row;
@@ -73,8 +69,6 @@ h1 {
     cursor: pointer;
     font-weight: bold;
 }
-
-/* --- Typography & General --- */
 
 h2 {
     font-size: 1.4em;
@@ -106,8 +100,6 @@ footer {
     text-align: center;
 }
 
-/* --- View/Edit Content --- */
-
 pre {
     background-color: var(--color-bg-medium);
     border: 1px solid var(--color-border);
@@ -130,8 +122,6 @@ textarea {
     border-radius: 4px;
 }
 
-/* --- Search Page Control Panel --- */
-
 .search-controls {
     background: var(--color-bg-medium);
     padding: 20px;
@@ -141,7 +131,7 @@ textarea {
 
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end; /* Aligns inputs and button to the bottom */
+    align-items: flex-end;
     gap: 20px;
 }
 
@@ -150,7 +140,6 @@ textarea {
     flex-direction: column;
 }
 
-/* Search Query grows to fill space */
 .form-group.grow {
     flex-grow: 1;
 }
@@ -193,8 +182,6 @@ textarea {
     background-color: #558b41;
 }
 
-/* --- Post List Items (Root & Search) --- */
-
 .post-list {
     list-style: none;
     padding: 0;
@@ -211,7 +198,6 @@ textarea {
     border-bottom: none;
 }
 
-/* Flex header to separate Title (left) and Date (right) */
 .post-item-header {
     display: flex;
     justify-content: space-between;
@@ -251,7 +237,7 @@ textarea {
     opacity: 0.8;
 }
 
-.latest-header {
+.content-header {
     display: flex;
     justify-content: space-between;
     align-items: center;

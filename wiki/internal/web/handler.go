@@ -36,10 +36,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 		p = &store.Page{Title: title}
 	}
 	data := ViewPageData{
-		Title:    decodeTitle(p.Title),
-		Page:     p,
-		Exist:    ok,
-		EditHref: "/edit/" + p.Title,
+		Title:     decodeTitle(p.Title),
+		Page:      p,
+		Exist:     ok,
+		EditHref:  "/edit/" + p.Title,
+		GotoHref:  "/goto/",
+		GotoParam: "page",
 	}
 
 	renderTemplate(w, "view", data)
@@ -81,7 +83,6 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	renderTemplate(w, "edit", data)
 }
 
-// TODO add erorr handling
 func styleHandler(w http.ResponseWriter, r *http.Request, _ context.Context, _ store.Store, style string) {
 	w.Header().Set("Content-Type", "text/css")
 	http.ServeFile(w, r, path.Join(stylesDir, style))
@@ -182,7 +183,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, 
 	renderTemplate(w, "search", data)
 }
 
-// TODO finish or delete
 func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/x-icon")
 	http.ServeFile(w, r, path.Join(staticDir, "favicon.ico"))

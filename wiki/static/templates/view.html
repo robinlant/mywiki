@@ -3,7 +3,15 @@
 {{end}}
 
 {{define "content"}}
-<h2>{{.Title}}</h2>
+<div class="content-header">
+    <h2>{{.Title}}</h2>
+    <div class="header-search">
+        <form action="{{.GotoHref}}" method="GET">
+            <input type="text" name="{{.GotoParam}}" placeholder="Goto..." required>
+            <input type="submit" value="Goto">
+        </form>
+    </div>
+</div>
 
 {{if .Exist}}
     <div style="color: var(--color-text-medium); font-size: 0.9em; margin-bottom: 20px;">

@@ -2,6 +2,8 @@ package web
 
 import "github.com/robinlant/mywiki/wiki/internal/store"
 
+//TODO rework this structs to use composition
+
 type Display struct {
 	Display  string
 	ViewHref string
@@ -24,10 +26,12 @@ type RootPageData struct {
 }
 
 type ViewPageData struct {
-	Title    string
-	EditHref string
-	Page     *store.Page
-	Exist    bool
+	Title     string
+	EditHref  string
+	Page      *store.Page
+	Exist     bool
+	GotoHref  string
+	GotoParam string
 }
 
 type EditPageData struct {
