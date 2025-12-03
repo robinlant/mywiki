@@ -65,11 +65,18 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	if !ok {
 		p = &store.Page{Title: title}
 	}
+	var action string
+	if ok {
+		action = "Editing '" + decodeTitle(p.Title) + "'"
+	} else {
+		action = "Creating '" + decodeTitle(p.Title) + "'"
+	}
 	data := EditPageData{
-		Title:    "Editing " + p.Title,
-		Display:  p.Title,
+		Title:    action,
+		Display:  action,
 		Page:     p,
 		SaveHref: "/save/" + p.Title,
+		Exists:   ok,
 	}
 	renderTemplate(w, "edit", data)
 }
@@ -119,17 +126,23 @@ func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	renderTemplate(w, "root", data)
 }
 
-func queryParamOrDefault[T any](r *http.Request, key string, def T, conv func(string) (T, error)) T {
-	s := r.URL.Query().Get(key)
-	if s == "" {
-		return def
+func gotoHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store) {
+	p := r.FormValue("page")
+	if p == "" {
+		http.NotFound(w, r)
+		return
 	}
-
-	v, err := conv(s)
+	ep := encodeTitle(p)
+	_, ok, err := s.LoadPage(ctx, ep)
 	if err != nil {
-		return def
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	return v
+	if ok {
+		http.Redirect(w, r, "/view/"+ep, http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/edit/"+ep, http.StatusFound)
+	}
 }
 
 func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store) {
@@ -167,17 +180,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, 
 	}
 
 	renderTemplate(w, "search", data)
-}
-
-func gotoHandler(w http.ResponseWriter, r *http.Request) {
-	page := r.FormValue("page")
-
-	if page == "" {
-		http.NotFound(w, r)
-		return
-	}
-
-	http.Redirect(w, r, "/view/"+page, http.StatusFound)
 }
 
 // TODO finish or delete

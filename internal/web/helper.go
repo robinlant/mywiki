@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -66,4 +67,17 @@ func addTitleReferences(s []byte) []byte {
 	})
 
 	return s
+}
+
+func queryParamOrDefault[T any](r *http.Request, key string, def T, conv func(string) (T, error)) T {
+	s := r.URL.Query().Get(key)
+	if s == "" {
+		return def
+	}
+
+	v, err := conv(s)
+	if err != nil {
+		return def
+	}
+	return v
 }

@@ -35,4 +35,5 @@ type EditPageData struct {
 	Display  string
 	Page     *store.Page
 	SaveHref string
+	Exists   bool
 }

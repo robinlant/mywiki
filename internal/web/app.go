@@ -9,12 +9,13 @@ import (
 
 func Run(store store.Store, addr string) {
 	http.HandleFunc("/favicon.ico", faviconHandler)
-	http.HandleFunc("/goto/", gotoHandler)
 	http.HandleFunc("/view/", makePageHandler(viewHandler, store))
 	http.HandleFunc("/edit/", makePageHandler(editHandler, store))
 	http.HandleFunc("/save/", makePageHandler(saveHandler, store))
+	http.HandleFunc("/goto/", makeGenericHandler(gotoHandler, store))
 	http.HandleFunc("/styles/", makePageHandler(styleHandler, store))
 	http.HandleFunc("/search/", makeGenericHandler(searchHandler, store))
+	// root has to be the last as / matches all URIs
 	http.HandleFunc("/", makeGenericHandler(rootHandler, store))
 
 	log.Fatal(http.ListenAndServe(addr, nil))
