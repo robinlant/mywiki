@@ -1,4 +1,4 @@
-module github.com/robinlant/mywiki/internal/wiki
+module github.com/robinlant/mywiki
 
 go 1.25.0
 

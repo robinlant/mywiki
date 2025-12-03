@@ -10,19 +10,22 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/robinlant/mywiki/internal/wiki/internal/store"
+	"github.com/robinlant/mywiki/internal/store"
 )
 
-var validPath = regexp.MustCompile("^/(edit|view|save|styles|search)/([a-zA-z+0-9._-]+)$")
+var validPath = regexp.MustCompile(`^/(edit|view|save|styles|search)/([a-zA-z+0-9._-]+)$`)
 
-type RootPageData struct {
-	Title string
-	Posts []*store.Page
+type handleeFunc func(http.ResponseWriter, *http.Request, context.Context, store.Store, string)
+
+func decodeT(p *store.Page) string {
+	return string(decodeTitle([]byte(p.Title)))
 }
 
-type handlerFunc func(http.ResponseWriter, *http.Request, context.Context, store.Store, string)
+func encodeT(title string) string {
+	return string(encodeTitle(([]byte(title))))
+}
 
-func makePageHandler(fn handlerFunc, s store.Store) http.HandlerFunc {
+func makePageHandler(fn handleeFunc, s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		m := validPath.FindStringSubmatch(r.URL.Path)
@@ -41,14 +44,22 @@ func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 		return
 	}
 	if !ok {
-		p = &store.Page{Title: title, Body: []byte("This wiki page is emtpy...")}
+		p = &store.Page{Title: encodeT(title)}
 	}
-	renderTemplate(w, "view", p)
+	p.Body = addTitleReferences(p.Body)
+	data := ViewPageData{
+		Title:    decodeT(p),
+		Page:     p,
+		Exist:    ok,
+		EditHref: "/edit/" + p.Title,
+	}
+
+	renderTemplate(w, "view", data)
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, title string) {
 	body := r.FormValue("body")
-	p := &store.Page{Title: title, Body: []byte(body)}
+	p := &store.Page{Title: encodeT(title), Body: []byte(body)}
 	err := s.SavePage(ctx, p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,9 +75,15 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 		return
 	}
 	if !ok {
-		p = &store.Page{Title: title}
+		p = &store.Page{Title: encodeT(title)}
 	}
-	renderTemplate(w, "edit", p)
+	data := EditPageData{
+		Title:    "Editing " + p.Title,
+		Display:  p.Title,
+		Page:     p,
+		SaveHref: "/save/" + p.Title,
+	}
+	renderTemplate(w, "edit", data)
 }
 
 // TODO add erorr handling
@@ -99,9 +116,18 @@ func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 		return
 	}
 
+	d := make([]Display, len(ps))
+	for i, p := range ps {
+		d[i] = Display{
+			Display:  decodeT(p),
+			ViewHref: "/view/" + p.Title,
+			Page:     p,
+		}
+	}
+
 	data := RootPageData{
-		Title: "Home",
-		Posts: ps,
+		Title:    "Home",
+		Displays: d,
 	}
 
 	renderTemplate(w, "root", data)

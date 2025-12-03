@@ -5,10 +5,10 @@
 {{define "content"}}
 <h2>Latest updates</h2>
 <ul class="post-list">
-    {{range .Posts}}
+    {{range .Displays}}
     <li class="post-item">
         <div class="post-item-title">
-            <a href="/view/{{.Title}}">{{.Title}}</a>
+            <a href="{{.ViewHref}}">{{.Display}}</a>
         </div>
         <div class="post-item-meta">
             Post details available soon.

@@ -3,9 +3,9 @@
 {{end}}
 
 {{define "content"}}
-<h2>Editing {{.Title}}</h2>
-<form action="/save/{{.Title}}" method="POST">
-    <textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea>
+<h2>Editing {{.Display}}</h2>
+<form action="{{.SaveHref}}" method="POST">
+    <textarea name="body" rows="20" cols="80">{{printf "%s" .Page.Body}}</textarea>
     <br>
     <input type="submit" value="Save">
 </form>
