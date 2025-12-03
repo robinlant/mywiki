@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/robinlant/mywiki/internal/store"
+	"github.com/robinlant/mywiki/wiki/internal/store"
 )
 
 func Run(store store.Store, addr string) {

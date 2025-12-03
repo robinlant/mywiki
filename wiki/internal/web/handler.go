@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/robinlant/mywiki/internal/store"
+	"github.com/robinlant/mywiki/wiki/internal/store"
 )
 
 var validPath = regexp.MustCompile(`^/(edit|view|save|styles|search)/([a-zA-z+0-9.-_ ]+)$`)

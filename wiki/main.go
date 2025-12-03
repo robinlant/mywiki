@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/robinlant/mywiki/internal/store"
-	"github.com/robinlant/mywiki/internal/web"
+	"github.com/robinlant/mywiki/wiki/internal/store"
+	"github.com/robinlant/mywiki/wiki/internal/web"
 )
 
 type Config struct {

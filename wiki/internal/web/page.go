@@ -1,6 +1,6 @@
 package web
 
-import "github.com/robinlant/mywiki/internal/store"
+import "github.com/robinlant/mywiki/wiki/internal/store"
 
 type Display struct {
 	Display  string

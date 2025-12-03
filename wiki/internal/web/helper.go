@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/robinlant/mywiki/internal/store"
+	"github.com/robinlant/mywiki/wiki/internal/store"
 )
 
 var reference = regexp.MustCompile(`\[{2}(.*?)\]{2}`)
