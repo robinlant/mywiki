@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY . .
+COPY *.go .
 
 RUN CGO_ENABLED=0 go build -o main .
 
@@ -14,6 +14,8 @@ RUN CGO_ENABLED=0 go build -o main .
 FROM alpine:latest
 
 WORKDIR /app
+
+COPY *.csv .
 
 COPY --from=build /app/main .
 
