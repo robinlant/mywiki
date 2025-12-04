@@ -2,8 +2,7 @@ name: mywiki
 
 services:
   quote:
-    build:
-      context: quotes
+    image: robinlant/mywiki-quotes:1
     environment:
       - ADDR=:8081
     restart: on-failure:3
@@ -11,8 +10,7 @@ services:
       - quote-net
 
   wiki:
-    build:
-      context: wiki
+    image: robinlant/mywiki-wiki:1
     ports:
       - 8800:8800
     restart: on-failure:3
