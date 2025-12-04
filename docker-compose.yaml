@@ -28,7 +28,7 @@ services:
       - mongo
 
   mongo:
-    image: mongo:latest
+    image: mongo:8.2
     networks:
       - mongo-net
 
