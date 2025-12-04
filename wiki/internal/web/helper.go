@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/robinlant/mywiki/wiki/internal/quote"
 	"github.com/robinlant/mywiki/wiki/internal/store"
 )
 
@@ -80,4 +81,15 @@ func queryParamOrDefault[T any](r *http.Request, key string, def T, conv func(st
 		return def
 	}
 	return v
+}
+
+func getRandomQuoteOrWarn(qs *quote.Service) *quote.Quote {
+	if qs.BaseUrl == "" {
+		return nil
+	}
+	q, err := qs.GetRandomQuote()
+	if err != nil {
+		log.Printf("[WARN] quote will not be displayed as quote service returnded err: %s", err.Error())
+	}
+	return q
 }

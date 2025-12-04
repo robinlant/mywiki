@@ -4,7 +4,7 @@
 
 {{define "content"}}
 <div class="content-header">
-    <h2>{{.Title}}</h2>
+    <h2>{{.BaseData.Title}}</h2>
     <div class="header-search">
         <form action="{{.GotoHref}}" method="GET">
             <input type="text" name="{{.GotoParam}}" placeholder="Goto..." required>

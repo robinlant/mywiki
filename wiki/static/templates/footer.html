@@ -1,5 +1,14 @@
 {{define "footer"}}
 <footer>
-    MyWiki © 2025
+    {{if .BaseData.Quote}}
+    <div class="footer-quote">
+        “{{.BaseData.Quote.Text}}”
+        <span class="quote-author">— {{.BaseData.Quote.Author}}</span>
+    </div>
+    {{end}}
+
+    <div class="footer-copyright">
+        MyWiki © 2025
+    </div>
 </footer>
 {{end}}

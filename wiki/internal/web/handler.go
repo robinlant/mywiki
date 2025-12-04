@@ -7,14 +7,15 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/robinlant/mywiki/wiki/internal/quote"
 	"github.com/robinlant/mywiki/wiki/internal/store"
 )
 
 var validPath = regexp.MustCompile(`^/(edit|view|save|styles|search)/([a-zA-z+0-9.-_ ]+)$`)
 
-type handleeFunc func(http.ResponseWriter, *http.Request, context.Context, store.Store, string)
+type handleeFunc func(http.ResponseWriter, *http.Request, context.Context, store.Store, *quote.Service, string)
 
-func makePageHandler(fn handleeFunc, s store.Store) http.HandlerFunc {
+func makePageHandler(fn handleeFunc, s store.Store, qs *quote.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		m := validPath.FindStringSubmatch(r.URL.Path)
@@ -22,11 +23,11 @@ func makePageHandler(fn handleeFunc, s store.Store) http.HandlerFunc {
 			http.NotFound(w, r)
 			return
 		}
-		fn(w, r, ctx, s, encodeTitle(m[2]))
+		fn(w, r, ctx, s, qs, encodeTitle(m[2]))
 	}
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, title string) {
+func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, qs *quote.Service, title string) {
 	p, ok, err := s.LoadPage(ctx, title)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -35,8 +36,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	if !ok {
 		p = &store.Page{Title: title}
 	}
+	quote := getRandomQuoteOrWarn(qs)
+
 	data := ViewPageData{
-		Title:     decodeTitle(p.Title),
+		BaseData:  BasePageData{Title: decodeTitle(p.Title), Quote: quote},
 		Page:      p,
 		Exist:     ok,
 		EditHref:  "/edit/" + p.Title,
@@ -47,7 +50,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	renderTemplate(w, "view", data)
 }
 
-func saveHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, title string) {
+func saveHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, _ *quote.Service, title string) {
 	body := r.FormValue("body")
 	p := &store.Page{Title: title, Body: []byte(body)}
 	err := s.SavePage(ctx, p)
@@ -58,7 +61,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
-func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, title string) {
+func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, qs *quote.Service, title string) {
 	p, ok, err := s.LoadPage(ctx, title)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -73,8 +76,9 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	} else {
 		action = "Creating '" + decodeTitle(p.Title) + "'"
 	}
+	quote := getRandomQuoteOrWarn(qs)
 	data := EditPageData{
-		Title:    action,
+		BaseData: BasePageData{Title: action, Quote: quote},
 		Display:  action,
 		Page:     p,
 		SaveHref: "/save/" + p.Title,
@@ -83,22 +87,22 @@ func editHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	renderTemplate(w, "edit", data)
 }
 
-func styleHandler(w http.ResponseWriter, r *http.Request, _ context.Context, _ store.Store, style string) {
+func styleHandler(w http.ResponseWriter, r *http.Request, _ context.Context, _ store.Store, _ *quote.Service, style string) {
 	w.Header().Set("Content-Type", "text/css")
 	http.ServeFile(w, r, path.Join(stylesDir, style))
 }
 
-type handlee func(http.ResponseWriter, *http.Request, context.Context, store.Store)
+type handlee func(http.ResponseWriter, *http.Request, context.Context, store.Store, *quote.Service)
 
-func makeGenericHandler(fn handlee, s store.Store) http.HandlerFunc {
+func makeGenericHandler(fn handlee, s store.Store, qs *quote.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		fn(w, r, ctx, s)
+		fn(w, r, ctx, s, qs)
 	}
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store) {
+func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, qs *quote.Service) {
 	var q = store.OrderQuery{
 		Limit: 10,
 		Field: "updatedat",
@@ -116,9 +120,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	for i, p := range ps {
 		d[i] = getDisplay(p)
 	}
-
+	quote := getRandomQuoteOrWarn(qs)
 	data := RootPageData{
-		Title:     "Home",
+		BaseData:  BasePageData{Title: "Home", Quote: quote},
 		Displays:  d,
 		GotoHref:  "/goto/",
 		GotoParam: "page",
@@ -127,7 +131,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	renderTemplate(w, "root", data)
 }
 
-func gotoHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store) {
+func gotoHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, _ *quote.Service) {
 	p := r.FormValue("page")
 	if p == "" {
 		http.NotFound(w, r)
@@ -146,7 +150,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s 
 	}
 }
 
-func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store) {
+func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, s store.Store, qs *quote.Service) {
 	strToUint := func(s string) (uint, error) {
 		i, err := strconv.ParseUint(s, 10, 32)
 		if err != nil {
@@ -171,9 +175,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request, ctx context.Context, 
 	for i, p := range ps {
 		d[i] = getDisplay(p)
 	}
-
+	quote := getRandomQuoteOrWarn(qs)
 	data := SearchPageData{
-		Title:    "Search",
+		BaseData: BasePageData{Title: "Search", Quote: quote},
 		Displays: d,
 		Page:     q.Page,
 		Limit:    q.Limit,

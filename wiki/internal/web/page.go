@@ -1,6 +1,9 @@
 package web
 
-import "github.com/robinlant/mywiki/wiki/internal/store"
+import (
+	"github.com/robinlant/mywiki/wiki/internal/quote"
+	"github.com/robinlant/mywiki/wiki/internal/store"
+)
 
 //TODO rework this structs to use composition
 
@@ -10,8 +13,13 @@ type Display struct {
 	Page     *store.Page
 }
 
+type BasePageData struct {
+	Title string
+	Quote *quote.Quote
+}
+
 type SearchPageData struct {
-	Title    string
+	BaseData BasePageData
 	Displays []Display
 	Page     uint
 	Limit    uint
@@ -19,14 +27,15 @@ type SearchPageData struct {
 }
 
 type RootPageData struct {
-	Title     string
+	BaseData  BasePageData
 	Displays  []Display
 	GotoHref  string
 	GotoParam string
+	Quote     quote.Quote
 }
 
 type ViewPageData struct {
-	Title     string
+	BaseData  BasePageData
 	EditHref  string
 	Page      *store.Page
 	Exist     bool
@@ -35,7 +44,7 @@ type ViewPageData struct {
 }
 
 type EditPageData struct {
-	Title    string
+	BaseData BasePageData
 	Display  string
 	Page     *store.Page
 	SaveHref string

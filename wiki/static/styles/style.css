@@ -98,6 +98,31 @@ footer {
     color: var(--color-text-medium);
     font-size: 0.85em;
     text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-quote {
+    max-width: 80%;
+    font-style: italic;
+    color: var(--color-text-light);
+    font-size: 1.1em;
+    line-height: 1.4;
+}
+
+.quote-author {
+    display: block;
+    font-style: normal;
+    font-size: 0.85em;
+    margin-top: 5px;
+    color: var(--color-accent);
+}
+
+.footer-copyright {
+    color: var(--color-text-medium);
 }
 
 pre {

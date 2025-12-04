@@ -6,22 +6,33 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/robinlant/mywiki/wiki/internal/quote"
 	"github.com/robinlant/mywiki/wiki/internal/store"
 	"github.com/robinlant/mywiki/wiki/internal/web"
 )
 
 type Config struct {
-	Addr     string
-	MongoURI string
-	DB       string
+	Addr      string
+	MongoURI  string
+	DB        string
+	QuotesUrl string
 }
 
 func LoadConfig() Config {
 	return Config{
-		Addr:     mustGetenv("ADDR"),
-		MongoURI: mustGetenv("MONGO_CON"),
-		DB:       mustGetenv("MONGO_DB"),
+		Addr:      mustGetenv("ADDR"),
+		MongoURI:  mustGetenv("MONGO_CON"),
+		DB:        mustGetenv("MONGO_DB"),
+		QuotesUrl: getenvOrWarning("QUOTES_URL"),
 	}
+}
+
+func getenvOrWarning(key string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		log.Printf("[WARN] failed to get env var '%s'", key)
+	}
+	return v
 }
 
 func mustGetenv(key string) string {
@@ -40,8 +51,9 @@ func main() {
 	}
 	conf := LoadConfig()
 
+	qs := quote.Service{BaseUrl: conf.QuotesUrl}
 	st, disc := store.NewMongoStore(conf.MongoURI, conf.DB)
 	defer disc()
 	log.Printf("[INFO] Starting a web server at %s", conf.Addr)
-	web.Run(st, conf.Addr)
+	web.Run(st, conf.Addr, &qs)
 }
