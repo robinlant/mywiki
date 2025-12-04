@@ -1,0 +1,37 @@
+name: mywiki
+
+services:
+  quote:
+    build:
+      context: quotes
+    environment:
+      - ADDR=:8081
+    restart: on-failure:3
+    networks:
+      - quote-net
+
+  wiki:
+    build:
+      context: wiki
+    ports:
+      - 8800:8800
+    restart: on-failure:3
+    environment:
+      - ADDR=:8800
+      - MONGO_CON=mongodb://mongo:27017
+      - MONGO_DB=wiki
+      - QUOTES_URL=http://quote:8081
+    networks:
+      - mongo-net
+      - quote-net
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    networks:
+      - mongo-net
+
+networks:
+  quote-net:
+  mongo-net:
