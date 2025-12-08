@@ -1,6 +1,8 @@
 name: Build and push images
 on:
-    push:
+  push:
+    paths:
+      
 
 jobs:
   build-push:
