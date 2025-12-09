@@ -9,6 +9,7 @@ jobs:
         microservice:
           - wiki
           - quotes
+          - proxy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
