@@ -1,27 +1,56 @@
 name: mywiki
 
 services:
-  quote:
-    image: robinlant/mywiki-quotes:1
+  proxy:
+    image: robinlant/mywiki-proxy:latest
+    ports:
+      - 8080:80
+    networks:
+      back-net:
+        aliases:
+          - quotes
+
+  quotes-1:
+    image: robinlant/mywiki-quotes:latest
     environment:
-      - ADDR=:8081
+      - ADDR=:8000
     restart: on-failure:3
     networks:
-      - quote-net
+      - back-net
 
-  wiki:
-    image: robinlant/mywiki-wiki:1
-    ports:
-      - 8800:8800
+  quotes-2:
+    image: robinlant/mywiki-quotes:latest
+    environment:
+      - ADDR=:8000
+    restart: on-failure:3
+    networks:
+      - back-net
+
+  wiki-1:
+    image: robinlant/mywiki-wiki:latest
     restart: on-failure:3
     environment:
-      - ADDR=:8800
+      - ADDR=:8000
       - MONGO_CON=mongodb://mongo:27017
       - MONGO_DB=wiki
-      - QUOTES_URL=http://quote:8081
+      - QUOTES_URL=http://quotes
     networks:
       - mongo-net
-      - quote-net
+      - back-net
+    depends_on:
+      - mongo
+
+  wiki-2:
+    image: robinlant/mywiki-wiki:latest
+    restart: on-failure:3
+    environment:
+      - ADDR=:8000
+      - MONGO_CON=mongodb://mongo:27017
+      - MONGO_DB=wiki
+      - QUOTES_URL=http://quotes
+    networks:
+      - mongo-net
+      - back-net
     depends_on:
       - mongo
 
@@ -29,7 +58,12 @@ services:
     image: mongo:8.2
     networks:
       - mongo-net
+    volumes:
+      - mongo:/data/db
 
 networks:
-  quote-net:
+  back-net:
   mongo-net:
+
+volumes:
+  mongo:
