@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quotes
+  labels:
+    app: quotes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quotes
+  template:
+    metadata:
+      labels:
+        app: quotes
+    spec:
+      imagePullSecrets:
+      - name: dockerhub-creds
+      containers:
+      - name: mywiki-quotes
+        image: robinlant/mywiki-quotes:latest
+        env:
+        - name: ADDR
+          value: ":8000"
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "50mi"
+            memory: "100Mi"
+          limits:
+            cpu: "150mi"
+            memory: "250Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quotes
+spec:
+  type: ClusterIP
+  selector:
+    app: quotes
+  ports:
+  - port: 8000
+    targetPort: 8000
