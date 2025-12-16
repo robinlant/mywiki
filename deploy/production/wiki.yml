@@ -1,27 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: quotes
+  name: wiki
+  namespace: maksym
   labels:
-    app: quotes
+    app: wiki
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: quotes
+      app: wiki
   template:
     metadata:
       labels:
-        app: quotes
+        app: wiki
     spec:
-      imagePullSecrets:
-      - name: dockerhub-creds
       containers:
-      - name: mywiki-quotes
-        image: robinlant/mywiki-quotes:latest
+      - name: mywiki-wiki
+        image: robinlant/mywiki-wiki
         env:
         - name: ADDR
           value: ":8000"
+        - name: MONGO_CON
+          value: "mongodb://mongo:27017"
+        - name: MONGO_DB
+          value: "wiki"
+        - name: QUOTES_URL
+          value: "http://quotes:8000"
         ports:
         - containerPort: 8000
         resources:
@@ -29,17 +34,19 @@ spec:
             cpu: "50mi"
             memory: "100Mi"
           limits:
-            cpu: "150mi"
-            memory: "250Mi"
+            cpu: "250mi"
+            memory: "500Mi"
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: quotes
+  namespace: maksym
+  name: wiki
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
-    app: quotes
+    app: wiki
   ports:
   - port: 8000
     targetPort: 8000

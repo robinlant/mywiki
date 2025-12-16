@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: maksym
   name: mongo
   labels:
     app: mongo
@@ -30,6 +31,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: maksym
   name: mongo
 spec:
   type: ClusterIP
