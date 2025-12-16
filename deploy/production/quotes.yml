@@ -16,7 +16,7 @@ spec:
         app: quotes
     spec:
       imagePullSecrets:
-      - name: dockerhub-creds
+      - name: docker-creds-maksym
       containers:
       - name: mywiki-quotes
         image: robinlant/mywiki-quotes:latest
