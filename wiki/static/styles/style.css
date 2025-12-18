@@ -3,7 +3,7 @@
     --color-bg-medium: #2a2a2a;
     --color-text-light: #e0e0e0;
     --color-text-medium: #a0a0a0;
-    --color-accent: #6aa84f;
+    --color-accent: #fb1616;
     --color-border: #444444;
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -86,8 +86,9 @@ a {
     transition: color 0.2s;
 }
 
+/* REmove hardcoded color  */
 a:hover {
-    color: #8fbc8f;
+    color: #e99f27;
     text-decoration: underline;
 }
 
@@ -203,8 +204,9 @@ textarea {
     height: 100%;
 }
 
+/* remove hardcoded color */
 .search-controls input[type="submit"]:hover {
-    background-color: #558b41;
+    background-color: #f4ad1e;
 }
 
 .post-list {
