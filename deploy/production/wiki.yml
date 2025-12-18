@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: mywiki-wiki
-        image: robinlant/mywiki-wiki
+        image: robinlant/mywiki-wiki:main.4fcb6
         env:
         - name: ADDR
           value: ":8000"
