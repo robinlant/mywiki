@@ -44,7 +44,7 @@ metadata:
   namespace: maksym
   name: wiki
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: wiki
   ports:
