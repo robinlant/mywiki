@@ -20,11 +20,19 @@ type Config struct {
 
 func LoadConfig() Config {
 	return Config{
-		Addr:      mustGetenv("ADDR"),
+		Addr:      getenvOrDefault("ADDR", ":8000"),
 		MongoURI:  mustGetenv("MONGO_CON"),
-		DB:        mustGetenv("MONGO_DB"),
+		DB:        getenvOrDefault("MONGO_DB", "wiki"),
 		QuotesUrl: getenvOrWarning("QUOTES_URL"),
 	}
+}
+
+func getenvOrDefault(key string, def string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	return v
 }
 
 func getenvOrWarning(key string) string {
