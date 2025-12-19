@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 const defaultDataPath = "quotes.csv"
+const defaultAddress = ":8000"
 const addrVar = "ADDR"
 const dataVAr = "DATA"
 
@@ -53,7 +55,7 @@ func QuoteFromRow(r []string) *Quote {
 func mustLoadConf() Conf {
 	a := os.Getenv(addrVar)
 	if a == "" {
-		log.Panicf("unable to find environmantal variable '%s'", addrVar)
+		a = defaultAddress
 	}
 	d := os.Getenv(dataVAr)
 	if d == "" {
@@ -62,14 +64,14 @@ func mustLoadConf() Conf {
 	return Conf{Data: d, Addr: a}
 }
 
-func makeHandler(fn func(http.ResponseWriter, *http.Request, []*Quote), q []*Quote) http.HandlerFunc {
+func makeHandler(fn func(http.ResponseWriter, *http.Request, []*Quote, *rand.Rand), q []*Quote, rng *rand.Rand) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fn(w, r, q)
+		fn(w, r, q, rng)
 	}
 }
 
-func randomHandler(w http.ResponseWriter, r *http.Request, q []*Quote) {
-	randomQuote := q[rand.Intn(len(q))]
+func randomHandler(w http.ResponseWriter, r *http.Request, q []*Quote, rng *rand.Rand) {
+	randomQuote := q[rng.Intn(len(q))]
 	b, err := json.Marshal(randomQuote)
 	if err != nil {
 		err := fmt.Errorf("error while marshaling into json: %s", err.Error())
@@ -100,7 +102,11 @@ func main() {
 		quotes[i-1] = QuoteFromRow(data[i])
 	}
 
-	http.HandleFunc("/random", makeHandler(randomHandler, quotes))
+	seed := time.Now().UnixNano() + int64(rand.Intn(1000)) + int64(len(os.Args))
+	source := rand.NewSource(seed)
+	rng := rand.New(source)
+
+	http.HandleFunc("/random", makeHandler(randomHandler, quotes, rng))
 
 	log.Printf("[INFO] Starting a web server at %s", conf.Addr)
 	log.Fatal(http.ListenAndServe(conf.Addr, nil))
