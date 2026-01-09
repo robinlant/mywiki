@@ -1,0 +1,32 @@
+appName: wiki
+
+wiki:
+  image: robinlant/mywiki-wiki:main.0d2be
+  replicas: 3
+  port: 8000
+  env:
+    ADDR: ":8000"
+    MONGO_CON: "mongodb://wiki-mongodb:27017"
+    QUOTES_URL: ""
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "100Mi"
+    limits:
+      cpu: "250m"
+      memory: "500Mi"
+
+mongo:
+  image: mongo:8.2
+  port: 27017
+  persistance:
+    hostPath: "/var/lib/mongo-data-volume"
+    storage: "1Gi"
+    recailmPolicy: Ratain
+  resources:
+    requests:
+      cpu: "80m"
+      memory: "512Mi"
+    limits:
+      cpu: "250m"
+      memory: "800Mi"

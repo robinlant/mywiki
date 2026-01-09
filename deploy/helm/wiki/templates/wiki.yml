@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-wiki
+  labels:
+    app: {{ .Values.appName }}-wiki
+spec:
+  replicas: {{ .Values.wiki.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}-wiki
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}-wiki
+    spec:
+      containers:
+      - name: {{ .Values.appName }}-wiki
+        image: {{ .Values.wiki.image }}
+        env:
+        {{- range $key, $val := .Values.wiki.env }}
+        - name: {{ $key }}
+          value: {{ $val | quote }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.wiki.port }}
+        resources:
+          requests:
+            cpu: {{ .Values.wiki.resources.requests.cpu }}
+            memory: {{ .Values.wiki.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.wiki.resources.limits.cpu }}
+            memory: {{ .Values.wiki.resources.limits.memory }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-wiki
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.appName }}-wiki
+  ports:
+  - port: {{ .Values.wiki.port }}
+    targetPort: {{ .Values.wiki.port }}

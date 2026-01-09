@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-mongodb
+  labels:
+    app: {{ .Values.appName }}-mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}-mongodb
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}-mongodb
+    spec:
+      containers:
+      - name: {{ .Values.appName }}-mongodb
+        image: {{ .Values.mongo.image }}
+        ports:
+          - containerPort: {{ .Values.mongo.port }}
+        resources:
+          requests:
+            cpu: {{ .Values.mongo.resources.requests.cpu }}
+            memory: {{ .Values.mongo.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.mongo.resources.limits.cpu }}
+            memory: {{ .Values.mongo.resources.limits.memory }}
+        volumeMounts:
+          - name: mongo-volume
+            mountPath: /data/db
+      volumes:
+      - name: mongo-volume
+        persistentVolumeClaim:
+          claimName: mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-mongodb
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.appName }}-mongodb
+  ports:
+  - port: {{ .Values.mongo.port }}
+    targetPort: {{ .Values.mongo.port }}
