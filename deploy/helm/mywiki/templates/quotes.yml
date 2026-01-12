@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-quotes
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}-quotes
+spec:
+  replicas: {{ .Values.quotes.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}-quotes
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}-quotes
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: quotes
+        image: {{ .Values.quotes.image }}
+        env:
+        {{- range $key, $val := .Values.quotes.env }}
+        - name: {{ $key }}
+          value: {{ $val | quote }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.quotes.port }}
+        resources:
+          {{- toYaml .Values.quotes.resources | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-quotes
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.appName }}-quotes
+  ports:
+  - port: {{ .Values.quotes.port }}
+    targetPort: {{ .Values.quotes.port }}
