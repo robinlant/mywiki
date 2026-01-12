@@ -1,4 +1,0 @@
-mongo:
-  persistance:
-    recailmPolicy: Delete
-    storage: "300Mi"

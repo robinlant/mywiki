@@ -7,3 +7,6 @@
 
 # Files copied from Windows metadata
 **/*:Zone.Identifier
+
+# ingore folder
+ignore

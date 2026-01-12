@@ -1,0 +1,66 @@
+appName: wiki
+namespace: maksym
+
+imagePullSecrets:
+  - name: docker-creds-maksym
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
+
+wiki:
+  image: robinlant/mywiki-wiki:main.0d2be
+  replicas: 2
+  port: 8000
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "100Mi"
+    limits:
+      cpu: "250m"
+      memory: "500Mi"
+  env:
+    ADDR: ":8000"
+
+quotes:
+  image: robinlant/mywiki-quotes:latest
+  replicas: 2
+  port: 8000
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "100Mi"
+    limits:
+      cpu: "150m"
+      memory: "250Mi"
+  env:
+    ADDR: ":8000"
+
+mongo:
+  image: mongo:8.2
+  port: 27017
+  persistence:
+    enabled: true
+    hostPath: "/var/lib/mongo-data-volume"
+    storage: "1Gi"
+    reclaimPolicy: Retain
+  resources:
+    requests:
+      cpu: "80m"
+      memory: "512Mi"
+    limits:
+      cpu: "250m"
+      memory: "800Mi"
+
+ingress-nginx:
+  enabled: true
+  controller:
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+    service:
+      type: ClusterIP
+    ingressClassResource:
+      name: nginx
+      enabled: true
+      default: true

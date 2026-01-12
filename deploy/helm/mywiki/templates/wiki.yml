@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.appName }}-wiki
+  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Values.appName }}-wiki
 spec:
@@ -14,29 +15,32 @@ spec:
       labels:
         app: {{ .Values.appName }}-wiki
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
-      - name: {{ .Values.appName }}-wiki
+      - name: wiki
         image: {{ .Values.wiki.image }}
         env:
         {{- range $key, $val := .Values.wiki.env }}
         - name: {{ $key }}
           value: {{ $val | quote }}
         {{- end }}
+        - name: MONGO_CON
+          value: "mongodb://{{ .Values.appName }}-mongo:{{ .Values.mongo.port }}"
+        - name: QUOTES_URL
+          value: "http://{{ .Values.appName }}-quotes:{{ .Values.quotes.port }}"
         ports:
         - containerPort: {{ .Values.wiki.port }}
         resources:
-          requests:
-            cpu: {{ .Values.wiki.resources.requests.cpu }}
-            memory: {{ .Values.wiki.resources.requests.memory }}
-          limits:
-            cpu: {{ .Values.wiki.resources.limits.cpu }}
-            memory: {{ .Values.wiki.resources.limits.memory }}
-
+          {{- toYaml .Values.wiki.resources | nindent 10 }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Values.appName }}-wiki
+  namespace: {{ .Values.namespace }}
 spec:
   type: ClusterIP
   selector:

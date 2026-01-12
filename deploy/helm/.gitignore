@@ -1,0 +1,17 @@
+# Helm dependencies and locks
+charts/
+Chart.lock
+
+# Helm packaging
+*.tgz
+
+# Helm Secrets (plugin)
+.helmsecrets
+secrets.yaml
+# (If using sops)
+*.sops.yaml
+
+# Rendered output for debugging
+rendered/
+*.manifest
+.deployed/

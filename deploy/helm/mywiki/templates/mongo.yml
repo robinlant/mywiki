@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-mongo
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}-mongo
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}-mongo
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: mongo
+        image: {{ .Values.mongo.image }}
+        ports:
+          - containerPort: {{ .Values.mongo.port }}
+        resources:
+          {{- toYaml .Values.mongo.resources | nindent 10 }}
+      {{- if .Values.mongo.persistence.enabled }}
+        volumeMounts:
+          - name: mongo-volume
+            mountPath: /data/db
+      volumes:
+      - name: mongo-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.appName }}-mongo-pvc
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}-mongo
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.appName }}-mongo
+  ports:
+  - port: {{ .Values.mongo.port }}
+    targetPort: {{ .Values.mongo.port }}
+---
+{{- if .Values.mongo.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.appName }}-mongo-pv
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: {{ .Values.mongo.persistence.storage }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ .Values.mongo.persistence.hostPath }}
+  persistentVolumeReclaimPolicy: {{ .Values.mongo.persistence.reclaimPolicy }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.appName }}-mongo-pvc
+  namespace: {{ .Values.namespace }}
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mongo.persistence.storage }}
+{{- end }}
