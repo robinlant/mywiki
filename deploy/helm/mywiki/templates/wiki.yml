@@ -27,10 +27,14 @@ spec:
         - name: {{ $key }}
           value: {{ $val | quote }}
         {{- end }}
+        {{- if not (hasKey .Values.wiki.env "MONGO_CON") }}
         - name: MONGO_CON
           value: "mongodb://{{ .Values.appName }}-mongo:{{ .Values.mongo.port }}"
+        {{- end }}
+        {{- if not (hasKey .Values.wiki.env "QUOTES_URL") }}
         - name: QUOTES_URL
           value: "http://{{ .Values.appName }}-quotes:{{ .Values.quotes.port }}"
+        {{- end }}
         ports:
         - containerPort: {{ .Values.wiki.port }}
         resources:

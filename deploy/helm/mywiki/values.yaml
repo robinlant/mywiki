@@ -58,9 +58,3 @@ ingress-nginx:
   controller:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
-    service:
-      type: ClusterIP
-    ingressClassResource:
-      name: nginx
-      enabled: true
-      default: true
