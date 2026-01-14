@@ -2,8 +2,8 @@ apiVersion: v2
 name: mywiki
 description: mywiki
 type: application
-version: 0.2.1
-appVersion: "n/a"
+version: 1.0.0
+appVersion: "big beautiful version"
 
 dependencies:
   - name: ingress-nginx

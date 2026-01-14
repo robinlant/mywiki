@@ -38,9 +38,12 @@ metadata:
   name: {{ .Values.appName }}-quotes
   namespace: {{ .Values.namespace }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.quotes.service.type }}
   selector:
     app: {{ .Values.appName }}-quotes
   ports:
   - port: {{ .Values.quotes.port }}
     targetPort: {{ .Values.quotes.port }}
+    {{- if and (eq .Values.quotes.service.type "NodePort") .Values.quotes.service.nodePort }}
+    nodePort: {{ .Values.quotes.service.nodePort }}
+    {{- end }}
