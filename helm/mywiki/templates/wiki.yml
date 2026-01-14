@@ -46,9 +46,12 @@ metadata:
   name: {{ .Values.appName }}-wiki
   namespace: {{ .Values.namespace }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.wiki.service.type }}
   selector:
     app: {{ .Values.appName }}-wiki
   ports:
   - port: {{ .Values.wiki.port }}
     targetPort: {{ .Values.wiki.port }}
+    {{- if and (eq .Values.wiki.service.type "NodePort") .Values.wiki.service.nodePort }}
+    nodePort: {{ .Values.wiki.service.nodePort }}
+    {{- end }}

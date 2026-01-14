@@ -1,11 +1,11 @@
 appName: wiki
-namespace: maksym
+namespace: default
 
 imagePullSecrets:
-  - name: docker-creds-maksym
+  - name: docker-creds
 
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   host: ""
 
@@ -13,6 +13,8 @@ wiki:
   image: robinlant/mywiki-wiki:main.0d2be
   replicas: 2
   port: 8000
+  service:
+    type: ClusterIP
   resources:
     requests:
       cpu: "50m"
@@ -27,6 +29,8 @@ quotes:
   image: robinlant/mywiki-quotes:latest
   replicas: 2
   port: 8000
+  service:
+    type: ClusterIP
   resources:
     requests:
       cpu: "50m"
@@ -41,10 +45,7 @@ mongo:
   image: mongo:8.2
   port: 27017
   persistence:
-    enabled: true
-    hostPath: "/var/lib/mongo-data-volume"
-    storage: "1Gi"
-    reclaimPolicy: Retain
+    enabled: false
   resources:
     requests:
       cpu: "80m"
@@ -54,7 +55,7 @@ mongo:
       memory: "800Mi"
 
 ingress-nginx:
-  enabled: true
+  enabled: false
   controller:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
