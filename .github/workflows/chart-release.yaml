@@ -7,21 +7,9 @@ on:
 
 jobs:
    release-charts:
-      strategy:
-         matrix:
-            charts:
-               - mywiki
       runs-on: ubuntu-latest
       steps:
          - uses: actions/checkout@v6
-
-         - name: Filter no changes
-           uses: dorny/paths-filter@v3
-           id: changes
-           with:
-            filters: |
-             changes:
-               - helm/'${{ matrix.charts }}/**'
 
          - name: Configure Git
            run: |
