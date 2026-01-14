@@ -3,7 +3,6 @@ on:
    push:
       branches:
          - main
-         - chart_releaser_pipeline # TODO: test only remove later
 
 jobs:
    release-charts:
@@ -20,3 +19,5 @@ jobs:
            uses: helm/chart-releaser-action@v1.7.0
            env:
              CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+           with:
+            charts_dir: charts
