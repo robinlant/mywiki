@@ -3,6 +3,21 @@ entries:
   mywiki:
   - apiVersion: v2
     appVersion: big beautiful version
+    created: "2026-01-15T08:27:34.294634008Z"
+    dependencies:
+    - condition: ingress-nginx.enabled
+      name: ingress-nginx
+      repository: https://kubernetes.github.io/ingress-nginx
+      version: 4.14.0
+    description: mywiki
+    digest: b532533ce2e021ae03c4c3cca2b9f0dd5f8748bc6574581977ee9f62e266564d
+    name: mywiki
+    type: application
+    urls:
+    - https://github.com/robinlant/mywiki/releases/download/mywiki-1.0.3/mywiki-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: big beautiful version
     created: "2026-01-14T08:10:56.939771245Z"
     dependencies:
     - condition: ingress-nginx.enabled
@@ -16,4 +31,4 @@ entries:
     urls:
     - https://github.com/robinlant/mywiki/releases/download/mywiki-1.0.2/mywiki-1.0.2.tgz
     version: 1.0.2
-generated: "2026-01-14T08:10:56.939780171Z"
+generated: "2026-01-15T08:27:34.294648064Z"
