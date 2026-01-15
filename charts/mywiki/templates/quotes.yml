@@ -15,20 +15,17 @@ spec:
       labels:
         app: {{ .Values.appName }}-quotes
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      {{- include "imagePullSecret" . | nindent 6 }}
       containers:
       - name: quotes
         image: {{ .Values.quotes.image }}
         env:
         {{- range $key, $val := .Values.quotes.env }}
-        - name: {{ $key }}
-          value: {{ $val | quote }}
+          - name: {{ $key }}
+            value: {{ $val | quote }}
         {{- end }}
         ports:
-        - containerPort: {{ .Values.quotes.port }}
+          - containerPort: {{ .Values.quotes.port }}
         resources:
           {{- toYaml .Values.quotes.resources | nindent 10 }}
 ---
