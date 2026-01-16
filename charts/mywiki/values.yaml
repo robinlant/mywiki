@@ -4,11 +4,6 @@ namespace: default
 imagePullSecrets:
   - name: docker-creds
 
-ingress:
-  enabled: false
-  className: nginx
-  host: ""
-
 wiki:
   image: robinlant/mywiki-wiki:main.0d2be
   replicas: 2
@@ -53,6 +48,15 @@ mongo:
     limits:
       cpu: "250m"
       memory: "800Mi"
+
+ingress:
+  enabled: false
+  className: nginx
+  host: ""
+  path:
+    defaultBackend: true
+    path: "/wiki"
+    type: "Prefix"
 
 ingress-nginx:
   enabled: false

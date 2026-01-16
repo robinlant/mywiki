@@ -6,18 +6,20 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.path.defaultBackend }}
   defaultBackend:
     service:
       name: {{ .Values.appName }}-wiki
       port:
         number: {{ .Values.wiki.port }}
+  {{- end }}
   rules:
   {{- if .Values.ingress.host }}
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          - path: {{ default "/" .Values.ingress.path.path }}
+            pathType: {{ default "Prefix" .Values.ingress.path.prefix}}
             backend:
               service:
                 name: {{ .Values.appName }}-wiki
